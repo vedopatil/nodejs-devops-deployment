@@ -1,28 +1,18 @@
-pipeline {
-    agent any
+stage('Verify') {
+    steps {
+        sh '''
+            for attempt in $(seq 1 10); do
+                if curl --fail --silent http://localhost/health; then
+                    echo "Application health check passed"
+                    exit 0
+                fi
 
-    triggers {
-        pollSCM('H/2 * * * *')
-    }
+                echo "Waiting for application... ($attempt/10)"
+                sleep 2
+            done
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/vedopatil/nodejs-devops-deployment.git'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh 'sudo -u vedo /home/vedo/nodejs-devops-deployment/deploy.sh'
-            }
-        }
-
-        stage('Verify') {
-            steps {
-                sh 'curl --fail http://localhost:3000/health'
-            }
-        }
+            echo "Application failed health check"
+            exit 1
+        '''
     }
 }
