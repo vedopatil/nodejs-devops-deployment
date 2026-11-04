@@ -1,18 +1,43 @@
-stage('Verify') {
-    steps {
-        sh '''
-            for attempt in $(seq 1 10); do
-                if curl --fail --silent http://localhost/health; then
-                    echo "Application health check passed"
-                    exit 0
-                fi
+pipeline {
+    agent any
 
-                echo "Waiting for application... ($attempt/10)"
-                sleep 2
-            done
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-            echo "Application failed health check"
-            exit 1
-        '''
+        stage('Deploy') {
+            steps {
+                sh 'sudo -n -u vedo /home/vedo/nodejs-devops-deployment/deploy.sh'
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                sh '''
+                    for i in $(seq 1 10); do
+                        if curl --fail --silent http://localhost/health; then
+                            echo "Deployment successful"
+                            exit 0
+                        fi
+                        sleep 2
+                    done
+
+                    echo "Deployment verification failed"
+                    exit 1
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD pipeline completed successfully.'
+        }
+        failure {
+            echo 'CI/CD pipeline failed. Check the stage logs.'
+        }
     }
 }
