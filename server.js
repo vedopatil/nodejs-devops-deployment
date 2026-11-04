@@ -4,7 +4,7 @@ const app = express();
 const PORT = 3000;
 
 app.get('/', (req, res) => {
-    res.send('<h1>Hello, NextAstra!</h1><p>Our simple Node.js application is running.</p>');
+    res.send('<h1>Hello, NextAstra!</h1><p>Version 2: Automatic CI/CD deployment verified.</p>');
 });
 
 app.get('/health', (req, res) => {
